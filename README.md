@@ -44,3 +44,5 @@ When the semi-opaque dark color is displayed on the dark background, there is
 no visible difference (same for the light color on the light background).
 However, when it is displayed on the opposite background, it blends 50%/50%,
 producing the midpoint color.
+
+[releases]: https://github.com/agausmann/discriminord/releases
