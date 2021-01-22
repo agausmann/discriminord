@@ -1,6 +1,6 @@
 [package]
 name = "discriminord"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["Adam Gausmann <agausmann@fastmail.com>"]
 edition = "2018"
 description = "Create images that look different in Discord light and dark themes"
