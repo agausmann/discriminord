@@ -3,6 +3,12 @@
 Create images that appear differently in Discord light and dark themes, or any
 other application with two different background colors.
 
+## Pictures
+
+![Dark Mode](pics/dar.png)
+![Light Mode](pics/lit.png)
+
+
 ## Installation
 
 - You can download and compile it with Cargo: `cargo install discriminord`.
