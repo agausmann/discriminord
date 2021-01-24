@@ -63,20 +63,23 @@ struct Options {
     output_file: PathBuf,
 }
 
-fn midpoint(image: &DynamicImage) -> f32 {
-    let pixel_count = image.width() * image.height();
-    let sum: f32 = image
-        .pixels()
-        .map(|(_, _, pixel)| pixel.to_luma().channels()[0] as f32 / 255.0)
-        .sum();
-    sum / (pixel_count as f32)
-}
+fn color_lerp(zero: Rgb<u8>, one: Rgb<u8>, luma: f32, alpha: f32) -> Rgba<u8> {
+    let luma = luma.max(0.0).min(1.0);
+    let alpha = alpha.max(0.0).min(1.0);
 
-fn is_above<P>(pixel: P, midpoint: f32) -> bool
-where
-    P: Pixel<Subpixel = u8>,
-{
-    pixel.to_luma().channels()[0] as f32 / 255.0 > midpoint
+    let zero_r = zero.channels()[0] as f32;
+    let zero_g = zero.channels()[1] as f32;
+    let zero_b = zero.channels()[2] as f32;
+    let one_r = one.channels()[0] as f32;
+    let one_g = one.channels()[1] as f32;
+    let one_b = one.channels()[2] as f32;
+
+    Rgba([
+        (zero_r * (1.0 - luma) + one_r * luma) as u8,
+        (zero_g * (1.0 - luma) + one_g * luma) as u8,
+        (zero_b * (1.0 - luma) + one_b * luma) as u8,
+        (alpha * 255.0) as u8,
+    ])
 }
 
 fn convert(
@@ -89,44 +92,24 @@ fn convert(
         return Err("dark and light image dimensions must be the same".into());
     }
 
-    let dark_dark = Rgba([
-        dark_color.channels()[0],
-        dark_color.channels()[1],
-        dark_color.channels()[2],
-        127,
-    ]);
-    let light_light = Rgba([
-        light_color.channels()[0],
-        light_color.channels()[1],
-        light_color.channels()[2],
-        127,
-    ]);
-    let dark_light = Rgba([0, 0, 0, 0]);
-    let light_dark = Rgba([
-        ((dark_color.channels()[0] as u16 + light_color.channels()[0] as u16) / 2) as u8,
-        ((dark_color.channels()[1] as u16 + light_color.channels()[1] as u16) / 2) as u8,
-        ((dark_color.channels()[2] as u16 + light_color.channels()[2] as u16) / 2) as u8,
-        255,
-    ]);
-
-    let dark_midpoint = midpoint(dark_image);
-    let light_midpoint = midpoint(light_image);
-
     let mut output = RgbaImage::new(dark_image.width(), dark_image.height());
+
     for y in 0..output.height() {
         for x in 0..output.width() {
-            let pixel = match (
-                is_above(dark_image.get_pixel(x, y), dark_midpoint),
-                is_above(light_image.get_pixel(x, y), light_midpoint),
-            ) {
-                (false, false) => dark_dark,
-                (true, true) => light_light,
-                (false, true) => dark_light,
-                (true, false) => light_dark,
+            let dark_value = dark_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0;
+            let light_value = light_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0;
+
+            let output_alpha = (dark_value - light_value + 1.0) / 2.0;
+            let output_luma = if output_alpha == 0.0 {
+                0.0
+            } else {
+                dark_value / 2.0 / output_alpha
             };
-            *output.get_pixel_mut(x, y) = pixel;
+            *output.get_pixel_mut(x, y) =
+                color_lerp(dark_color, light_color, output_luma, output_alpha);
         }
     }
+
     Ok(output)
 }
 
