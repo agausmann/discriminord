@@ -14,9 +14,6 @@ other application with two different background colors.
 1. Pick two images, one to show to your dark mode friends, and one to show to
 your light mode enemies.
 
-  **NOTE:** Not all images are created equal; images with only two colors work
-best, because there can only be two colors in the output.
-
 2. Run `discriminord <dark-image>.png <light-image>.png <output>.png`.
 
 3. Share with your friends.
@@ -27,22 +24,12 @@ For more advanced usage, see `discriminord --help`.
 
 ## How it works
 
-The image uses transparency to change the brightness of pixels when the color
-changes. It finds the color exactly between the dark and light background
-colors, and uses that as the "light" pixel color for dark mode, and the "dark"
-pixel color for light mode. Then, you just have to follow a table, based on
-whether the pixel needs be light or dark in each mode:
-
-| Dark mode   | Light mode  | Output Color        | Opacity |
-|-------------|-------------|---------------------|---------|
-| Dark color  | Dark color  | Dark background     | 50%     |
-| Light color | Light color | Light background    | 50%     |
-| Dark color  | Light color |                     | 0%      |
-| Light color | Dark color  | Dark/Light midpoint | 100%    |
-
-When the semi-opaque dark color is displayed on the dark background, there is
-no visible difference (same for the light color on the light background).
-However, when it is displayed on the opposite background, it blends 50%/50%,
-producing the midpoint color.
+The image uses transparency to change the brightness of pixels when the
+background color changes. The brightness and transparency of the image pixels
+can be thought of as parameters to a linear equation: `y = ax + b`. The
+background color is passed as the input `x`, and the output color (as seen by
+the viewer) is the output `y`. The alpha channel `a` describes how much the
+color will vary between the two backgrounds, and the brightness `b` is a
+baseline / offset.
 
 [releases]: https://github.com/agausmann/discriminord/releases
