@@ -1,1 +1,5 @@
+# Cargo output
 /target
+
+# wasm-pack output
+/pkg

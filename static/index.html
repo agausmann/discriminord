@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Discriminord</title>
+    </head>
+
+    <body>
+        <h1>Discriminord</h1>
+
+        <label for="dark-background">Dark background color:</label>
+        <input type="color" name="dark-background" id="dark-background" value="#36393f">
+        <br>
+        <label for="light-background">Light background color:</label>
+        <input type="color" name="light-background" id="light-background" value="#ffffff">
+        <br><br>
+        <label for="dark-image">Dark mode image:</label>
+        <input type="file" name="dark-image" id="dark-image" accept="image/png, image/jpeg">
+        <br>
+        <label for="light-image">Light mode image:</label>
+        <input type="file" name="light-image" id="light-image" accept="image/png, image/jpeg">
+
+        <h2>Preview</h2>
+
+        Right-click to download or copy the image. Either image will work on
+        both backgrounds. 
+        <!-- TODO download/copy buttons (non-trivial) --!>
+
+        <br><br>
+        <img id="dark-preview">
+        <img id="light-preview">
+
+        <script src="./main.js" type="module"></script>
+    </body>
+</html>
