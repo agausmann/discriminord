@@ -61,16 +61,48 @@ pub fn convert(
     dark_color: Rgb<u8>,
     light_color: Rgb<u8>,
 ) -> Result<RgbaImage, Error> {
-    if dark_image.dimensions() != light_image.dimensions() {
-        return Err("dark and light image dimensions must be the same".into());
-    }
+    let larger_width = dark_image.width().max(light_image.width());
+    let larger_height = dark_image.height().max(light_image.height());
 
-    let mut output = RgbaImage::new(dark_image.width(), dark_image.height());
+    let dark_start = (
+        (larger_width - dark_image.width()) / 2,
+        (larger_height - dark_image.height()) / 2,
+    );
+    let dark_end = (
+        dark_start.0 + dark_image.width(),
+        dark_start.1 + dark_image.height(),
+    );
+
+    let light_start = (
+        (larger_width - light_image.width()) / 2,
+        (larger_height - light_image.height()) / 2,
+    );
+    let light_end = (
+        light_start.0 + light_image.width(),
+        light_start.1 + light_image.height(),
+    );
+
+    let mut output = RgbaImage::new(larger_width, larger_height);
 
     for y in 0..output.height() {
         for x in 0..output.width() {
-            let dark_value = dark_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0;
-            let light_value = light_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0;
+            let dark_value = {
+                if dark_start.0 <= x && x < dark_end.0 && dark_start.1 <= y && y < dark_end.1 {
+                    let (x, y) = (x - dark_start.0, y - dark_start.1);
+                    dark_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0
+                } else {
+                    1.
+                }
+            };
+
+            let light_value = {
+                if light_start.0 <= x && x < light_end.0 && light_start.1 <= y && y < light_end.1 {
+                    let (x, y) = (x - light_start.0, y - light_start.1);
+                    light_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0
+                } else {
+                    1.
+                }
+            };
 
             let output_alpha = (dark_value - light_value + 1.0) / 2.0;
             let output_luma = if output_alpha == 0.0 {
