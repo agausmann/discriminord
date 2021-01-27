@@ -3,13 +3,19 @@
 Create images that appear differently in Discord light and dark themes, or any
 other application with two different background colors.
 
-## Installation
+## Webapp
+
+Installation is no longer necessary! There is [a webapp][app] that provides a
+more interactive experience. If you would still like to use the CLI, follow the
+instructions below.
+
+## CLI Installation
 
 - You can download and compile it with Cargo: `cargo install discriminord`.
 
 - Prebuilt binaries are also available in the [GitHub releases][releases].
 
-## How to use it
+## CLI Usage
 
 1. Pick two images, one to show to your dark mode friends, and one to show to
 your light mode enemies.
@@ -32,4 +38,5 @@ the viewer) is the output `y`. The alpha channel `a` describes how much the
 color will vary between the two backgrounds, and the brightness `b` is a
 baseline / offset.
 
+[app]: https://agausmann.github.io/discriminord
 [releases]: https://github.com/agausmann/discriminord/releases
