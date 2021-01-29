@@ -18,7 +18,7 @@ impl FromStr for Color {
                         rem = &rem[2..];
                         u8::from_str_radix(s, 16).ok()
                     })
-                    .ok_or_else(|| "Invalid format for color, expected #rrggbb")
+                    .ok_or("Invalid format for color, expected #rrggbb")
             };
 
             let r = parse_component()?;
@@ -60,7 +60,9 @@ pub fn convert(
     light_image: &DynamicImage,
     dark_color: Rgb<u8>,
     light_color: Rgb<u8>,
-) -> Result<RgbaImage, Error> {
+) -> RgbaImage {
+    // Output image is sized to fit both dark and light images.
+    // Input images are centered on the output, and background-color padding is added.
     let larger_width = dark_image.width().max(light_image.width());
     let larger_height = dark_image.height().max(light_image.height());
 
@@ -87,23 +89,31 @@ pub fn convert(
     for y in 0..output.height() {
         for x in 0..output.width() {
             let dark_value = {
+                // Pad dark images with dark background if necessary.
                 if dark_start.0 <= x && x < dark_end.0 && dark_start.1 <= y && y < dark_end.1 {
                     let (x, y) = (x - dark_start.0, y - dark_start.1);
                     dark_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0
                 } else {
-                    1.
+                    0.0
                 }
             };
 
             let light_value = {
+                // Pad light images with light background if necessary.
                 if light_start.0 <= x && x < light_end.0 && light_start.1 <= y && y < light_end.1 {
                     let (x, y) = (x - light_start.0, y - light_start.1);
                     light_image.get_pixel(x, y).to_luma().channels()[0] as f32 / 255.0
                 } else {
-                    1.
+                    1.0
                 }
             };
 
+            // Map dark_value to the range 0.0..0.5, and light_value to the range 0.5..1.0.
+            // (Both are originally 0.0..1.0)
+            // Then, the foreground and alpha are found using the blend equation:
+            // `Background * (1-Alpha) + Foreground * Alpha = ApparentColor`
+            // ...after substituting the two background and apparent-color combinations (light and
+            // dark) and solving the resulting system of equations.
             let output_alpha = (dark_value - light_value + 1.0) / 2.0;
             let output_luma = if output_alpha == 0.0 {
                 0.0
@@ -115,7 +125,7 @@ pub fn convert(
         }
     }
 
-    Ok(output)
+    output
 }
 
 #[cfg(target_arch = "wasm32")]
